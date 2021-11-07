@@ -11,6 +11,14 @@ const main = async () => {
         [100, 50, 25]
     );
     await gameContract.deployed();
+
+    let txn;
+    txn = await gameContract.mintCharacterNFT(2);
+    await txn.wait();
+
+    txn = await gameContract.attackBoss();
+    await txn.wait();
+    
     console.log("Contract deployed to:", gameContract.address)
         
     let txn;

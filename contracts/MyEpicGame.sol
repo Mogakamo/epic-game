@@ -36,6 +36,16 @@ contract MyEpicGame is ERC721 {
     // create a mapping from the NFT's tokenId => that NFTs attributes.
     mapping(uint256 => CharacterAttributes) public nftHolderAttributes;
 
+    struct BigBoss {
+        string name;
+        string imageURI;
+        uint hp;
+        uint maxHp;
+        uint attackDamage;
+    }
+
+    BigBoss public bigBoss;
+
     // mapping from an address => the NFT tokedId. Gives me an easy way to 
     //store the owner of the NFT and reference it later
     mapping(address => uint256) public nftHolders;
@@ -45,10 +55,26 @@ contract MyEpicGame is ERC721 {
         string[] memory characterNames,
         string[] memory characterImageURIs,
         uint[] memory characterHp,
-        uint[] memory characterAttackDmg
+        uint[] memory characterAttackDmg,
+        string memory bossName,
+        string memory bossImageURI,
+        uint bossHp,
+        uint bossAttackDamage
     )
         ERC721("Heroes", "HERO") 
     {
+        //Initialize the boss. Save it to our global "bigBoss" state variable
+        bigBoss = BigBoss({
+            name: bossName,
+            imageURI: bossImageURI,
+            hp: bossHp,
+            maxHp: bossHp,
+            attackDamage: bossAttackDamage
+        });
+
+        console.log("Done initializing boss %s w/ HP %s, img %s", bigBoss.name, bigBoss.hp, bigBoss.imageURI);
+
+
         // Loop through all the characters, and save their values in our contract 
         //so we can use them later when we mint our NFTs.
         for (uint256 i = 0; i < characterNames.length; i += 1) {
@@ -99,16 +125,16 @@ contract MyEpicGame is ERC721 {
 
 
    function tokenURI(uint256 _tokenId) public view override returns (string memory) {
-  CharacterAttributes memory charAttributes = nftHolderAttributes[_tokenId];
+        CharacterAttributes memory charAttributes = nftHolderAttributes[_tokenId];
 
-  string memory strHp = Strings.toString(charAttributes.hp);
-  string memory strMaxHp = Strings.toString(charAttributes.maxHp);
-  string memory strAttackDamage = Strings.toString(charAttributes.attackDamage);
+        string memory strHp = Strings.toString(charAttributes.hp);
+        string memory strMaxHp = Strings.toString(charAttributes.maxHp);
+        string memory strAttackDamage = Strings.toString(charAttributes.attackDamage);
 
-  string memory json = Base64.encode(
-    bytes(
-      string(
-        abi.encodePacked(
+        string memory json = Base64.encode(
+            bytes(
+                string(
+                abi.encodePacked(
           '{"name": "',
           charAttributes.name,
           ' -- NFT #: ',
@@ -128,4 +154,16 @@ contract MyEpicGame is ERC721 {
   
   return output;
 }
+
+    function attackBoss() public {
+        // Get the state of the player's NFT.
+        uint256 nftTokenIdOfPlayer = nftHolders[msg.sender];
+        CharacterAttributes storage player = nftHolderAttributes[nftTokenIdOfPlayer];
+        console.log("\nPlayer w/ character %s about to attack. Has %s and %s AD", player.name, player.hp, player.attackDamage);
+        console.log("Boss %s has %s HP and %s AD", bigBoss.name, bigBoss.hp, bigBoss.attackDamage);
+        // Make sure the player has more than 0 HP.
+        // Make sure the boss has more than 0 HP.
+        // Allow player to attack boss.
+        // Allow boss to attack player.
+    }
 }
