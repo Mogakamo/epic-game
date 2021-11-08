@@ -50,6 +50,8 @@ contract MyEpicGame is ERC721 {
     //store the owner of the NFT and reference it later
     mapping(address => uint256) public nftHolders;
 
+    event CharacterNFTMinted(address sender, uint256 tokenId, uint256 characterIndex);
+    event AttackComplete(uint newBossHp, uint newPlayerHp);
 
     constructor(
         string[] memory characterNames,
@@ -121,6 +123,9 @@ contract MyEpicGame is ERC721 {
 
        // Increment the tokenId for the next person that uses it
        _tokenIds.increment();
+
+
+       emit CharacterNFTMinted(msg.sender, newItemId, _characterIndex);
    }
 
 
@@ -161,7 +166,7 @@ contract MyEpicGame is ERC721 {
         uint256 nftTokenIdOfPlayer = nftHolders[msg.sender];
         CharacterAttributes storage player = nftHolderAttributes[nftTokenIdOfPlayer];
         console.log("\nPlayer w/ character %s about to attack. Has %s HP and %s AD", player.name, player.hp, player.attackDamage);
-  console.log("Boss %s has %s HP and %s AD", bigBoss.name, bigBoss.hp, bigBoss.attackDamage);
+        console.log("Boss %s has %s HP and %s AD", bigBoss.name, bigBoss.hp, bigBoss.attackDamage);
         // Make sure that the player has more that 0 hp.
         require (
             player.hp > 0,
@@ -188,5 +193,29 @@ contract MyEpicGame is ERC721 {
         // Console it for ease
         console.log("Player attacked boss. New boss hp: %s", bigBoss.hp);
         console.log("Boss attacked player. New player hp: %s\n", player.hp);
+    
+        emit AttackComplete(bigBoss.hp, player.hp);
+    }
+
+    function checkIfUserHasNFT() public view returns (CharacterAttributes memory) {
+        // get the tokenId of the user's character NFT
+        uint256 userNftTokenId = nftHolders[msg.sender];
+        // If the user has a tokenId in the map their character.
+        if (userNftTokenId > 0) {
+            return nftHolderAttributes[userNftTokenId];
+        }
+        // Else, return empty character
+        else {
+            CharacterAttributes memory emptyStruct;
+            return emptyStruct;
+        }
+    }
+
+    function getAllDefaultCharacters() public view returns (CharacterAttributes[] memory) {
+        return defaultCharacters;
+    }
+
+    function getBigBoss() public view returns (BigBoss memory) {
+        return bigBoss;
     }
 }
